@@ -1,4 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+part 'main.freezed.dart';
+
+// -- 1. State와 Cubit 정의 (원래는 별도 파일로 분리하는 것이 좋습니다) --
+
+// State 정의
+enum CreditCardStatus { initial, processing, success, notFound, error }
+
+@freezed
+abstract class CreditCardState with _$CreditCardState {
+  const factory CreditCardState({
+    @Default(CreditCardStatus.initial) CreditCardStatus status,
+    String? cardNumber,
+    String? expiryDate,
+  }) = _CreditCardState;
+}
+
+// Cubit 정의
+class CreditCardCubit extends Cubit<CreditCardState> {
+  CreditCardCubit() : super(const CreditCardState());
+
+  final TextRecognizer _textRecognizer = TextRecognizer();
+
+  Future<void> processImage(BarcodeCapture capture) async {
+    if (state.status == CreditCardStatus.processing) return;
+
+    if (capture.image == null) return;
+
+    emit(state.copyWith(status: CreditCardStatus.processing));
+
+    try {
+      final InputImage inputImage = InputImage.fromBytes(
+        bytes: capture.image!,
+        metadata: InputImageMetadata(
+          size: Size(
+            capture.size.width.toDouble(),
+            capture.size.height.toDouble(),
+          ),
+          rotation: InputImageRotation.rotation0deg,
+          format: InputImageFormat.nv21,
+          bytesPerRow: 0,
+        ),
+      );
+
+      final RecognizedText recognizedText = await _textRecognizer.processImage(
+        inputImage,
+      );
+      _parseText(recognizedText.text);
+    } catch (e) {
+      emit(state.copyWith(status: CreditCardStatus.error));
+    }
+  }
+
+  void _parseText(String text) {
+    final String sanitizedText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    final RegExp cardRegExp = RegExp(r'\b\d{13,16}\b');
+    final RegExp expiryRegExp = RegExp(r'\b(0[1-9]|1[0-2])\/?([0-9]{2})\b');
+
+    final String? cardNumber = cardRegExp.firstMatch(sanitizedText)?.group(0);
+    final RegExpMatch? expiryMatch = expiryRegExp.firstMatch(text);
+    final String? expiryDate = expiryMatch != null
+        ? '${expiryMatch.group(1)}/${expiryMatch.group(2)}'
+        : null;
+
+    if (cardNumber != null) {
+      emit(
+        state.copyWith(
+          status: CreditCardStatus.success,
+          cardNumber: cardNumber,
+          expiryDate: expiryDate ?? 'N/A',
+        ),
+      );
+    } else {
+      emit(state.copyWith(status: CreditCardStatus.notFound));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _textRecognizer.close();
+    return super.close();
+  }
+}
+
+// -- 앱 실행 부분 --
 
 void main() {
   runApp(const MyApp());
@@ -7,116 +96,86 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: '신용카드 스캐너',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // MyHomePage 대신 TextScannerScreen을 홈으로 지정
+      home: const TextScannerScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+// -- UI 위젯 부분 --
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class TextScannerScreen extends StatelessWidget {
+  const TextScannerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    // Cubit을 위젯 트리에 제공
+    return BlocProvider(
+      create: (context) => CreditCardCubit(),
+      child: const TextScannerView(),
+    );
+  }
+}
+
+class TextScannerView extends StatelessWidget {
+  const TextScannerView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      appBar: AppBar(title: const Text('신용카드 스캐너 (Bloc)')),
+      body: Stack(
+        children: [
+          // MobileScanner로 카메라 화면 표시
+          MobileScanner(
+            onDetect: (capture) {
+              // 감지된 이미지를 Cubit으로 전달
+              context.read<CreditCardCubit>().processImage(capture);
+            },
+          ),
+          // BlocBuilder로 상태 변화에 따라 UI 업데이트
+          BlocBuilder<CreditCardCubit, CreditCardState>(
+            builder: (context, state) {
+              Widget bottomWidget;
+              if (state.status == CreditCardStatus.processing) {
+                bottomWidget = const Center(child: CircularProgressIndicator());
+              } else if (state.status == CreditCardStatus.success) {
+                bottomWidget = Text(
+                  '카드 번호: ${state.cardNumber}\n유효 기간: ${state.expiryDate}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    backgroundColor: Colors.black54,
+                  ),
+                  textAlign: TextAlign.center,
+                );
+              } else {
+                bottomWidget = const Text(
+                  '카드를 화면 중앙에 비춰주세요.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    backgroundColor: Colors.black54,
+                  ),
+                );
+              }
+              return Container(
+                alignment: Alignment.bottomCenter,
+                padding: const EdgeInsets.all(32.0),
+                child: bottomWidget,
+              );
+            },
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
