@@ -66,14 +66,10 @@ class CreditCardCubit extends Cubit<CreditCardState> {
   }
 
   void _parseText(String text) {
-    // 카드번호 정규식 개선: 13~16자리 숫자, 공백이나 하이픈 허용
-    // 예: 1234 5678 1234 5678 또는 1234-5678-1234-5678
     final RegExp cardRegExp = RegExp(r'(?:\d{4}[-\s]?){3}\d{1,4}');
     final String? rawCardNumber = cardRegExp.firstMatch(text)?.group(0);
     final String? cardNumber = rawCardNumber?.replaceAll(RegExp(r'[-\s]'), '');
 
-    // 유효기간 정규식 개선: MM/YY 또는 MM.YY 또는 MM-YY
-    // 예: 12/25, 12.25, 12-25
     final RegExp expiryRegExp = RegExp(r'(0[1-9]|1[0-2])\s*[/.-]\s*([0-9]{2})');
     final RegExpMatch? expiryMatch = expiryRegExp.firstMatch(text);
     final String? expiryDate = expiryMatch != null
