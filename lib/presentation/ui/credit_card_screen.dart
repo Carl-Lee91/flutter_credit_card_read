@@ -17,7 +17,6 @@ class TextScannerView extends StatefulWidget {
 class _TextScannerViewState extends State<TextScannerView>
     with WidgetsBindingObserver {
   CameraController? _cameraController;
-  bool _isCameraInitialized = false;
   CameraDescription? _camera;
 
   @override
@@ -59,9 +58,9 @@ class _TextScannerViewState extends State<TextScannerView>
         }
       });
 
-      setState(() {
-        _isCameraInitialized = true;
-      });
+      if (!mounted) return;
+
+      context.read<CreditCardCubit>().setCameraInitialized();
     } catch (e) {
       debugPrint("카메라 초기화 오류: $e");
     }
@@ -92,7 +91,7 @@ class _TextScannerViewState extends State<TextScannerView>
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(title: const Text('신용카드 스캐너 (Camera)')),
-        body: BlocListener<CreditCardCubit, CreditCardState>(
+        body: BlocConsumer<CreditCardCubit, CreditCardState>(
           listener: (context, state) {
             if (state.status == CreditCardStatus.success) {
               _cameraController?.stopImageStream();
@@ -100,36 +99,38 @@ class _TextScannerViewState extends State<TextScannerView>
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => CreditCardResultScreen(
-                    cardNumber: state.cardNumber ?? '',
-                    expiryDate: state.expiryDate ?? "",
+                    cardNumber: state.cardNumber,
+                    expiryDate: state.expiryDate,
                   ),
                 ),
               );
             }
           },
-          child: Stack(
-            children: [
-              if (_isCameraInitialized && _cameraController != null)
-                SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: CameraPreview(_cameraController!),
-                )
-              else
-                const Center(child: CircularProgressIndicator()),
+          builder: (context, state) {
+            return Stack(
+              children: [
+                if (state.isCameraInitialized && _cameraController != null)
+                  SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: CameraPreview(_cameraController!),
+                  )
+                else
+                  const Center(child: CircularProgressIndicator()),
 
-              Center(
-                child: Container(
-                  width: 350,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 2),
-                    borderRadius: BorderRadius.circular(12),
+                Center(
+                  child: Container(
+                    width: 350,
+                    height: 220,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

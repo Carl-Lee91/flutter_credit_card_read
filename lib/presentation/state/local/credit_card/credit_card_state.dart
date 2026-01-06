@@ -6,7 +6,8 @@ enum CreditCardStatus { initial, processing, success, notFound, error }
 abstract class CreditCardState with _$CreditCardState {
   const factory CreditCardState({
     @Default(CreditCardStatus.initial) CreditCardStatus status,
-    String? cardNumber,
-    String? expiryDate,
+    @Default('') String cardNumber,
+    @Default('N/A') String expiryDate,
+    @Default(false) bool isCameraInitialized,
   }) = _CreditCardState;
 }

@@ -13,14 +13,17 @@ class CreditCardCubit extends Cubit<CreditCardState> {
 
   final TextRecognizer _textRecognizer = TextRecognizer();
 
-  bool _isBusy = false;
+  void setCameraInitialized() {
+    emit(state.copyWith(isCameraInitialized: true));
+  }
 
   Future<void> processImage(CameraImage image, CameraDescription camera) async {
-    if (_isBusy || state.status == CreditCardStatus.success) return;
+    if (state.status == CreditCardStatus.processing ||
+        state.status == CreditCardStatus.success) {
+      return;
+    }
 
-    _isBusy = true;
-    // 너무 빠른 UI 갱신을 막기 위해 상태 변경은 생략하거나 필요시에만 합니다.
-    // emit(state.copyWith(status: CreditCardStatus.processing));
+    emit(state.copyWith(status: CreditCardStatus.processing));
 
     try {
       final InputImage? inputImage = CameraUtils.convertCameraImageToInputImage(
@@ -29,7 +32,7 @@ class CreditCardCubit extends Cubit<CreditCardState> {
       );
 
       if (inputImage == null) {
-        _isBusy = false;
+        emit(state.copyWith(status: CreditCardStatus.initial));
         return;
       }
 
@@ -41,31 +44,25 @@ class CreditCardCubit extends Cubit<CreditCardState> {
     } catch (e) {
       debugPrint("OCR Error: $e");
     } finally {
-      _isBusy = false;
+      emit(state.copyWith(status: CreditCardStatus.initial));
     }
   }
 
   void _parseText(RecognizedText recognizedText) {
     String? foundCardNumber;
 
-    // [전략] N줄 합치기 (1~4줄)
     outerLoop:
     for (final block in recognizedText.blocks) {
       final lines = block.lines;
 
       for (int i = 0; i < lines.length; i++) {
-        // 기존의 _isIgnoredPattern 같은 복잡한 정규식 제거
-        // 대신 아래의 강력한 _extractCardNumber가 모든 것을 걸러냅니다.
-
         String combinedText = "";
 
-        // i번째 줄부터 최대 4줄까지 합쳐보기
         for (int j = 0; j < 4; j++) {
           if (i + j >= lines.length) break;
 
           combinedText += "${lines[i + j].text} ";
 
-          // 검사
           String? result = _extractCardNumber(combinedText);
           if (result != null) {
             foundCardNumber = result;
@@ -75,8 +72,6 @@ class CreditCardCubit extends Cubit<CreditCardState> {
       }
     }
 
-    // ---------------------------------------------------------
-    // 유효기간 추출
     final String fullText = recognizedText.text;
     final RegExp expiryRegExp = RegExp(
       r'(0[1-9]|1[0-2])\s*[/.-]\s*([0-9]{2,4})',
@@ -105,13 +100,11 @@ class CreditCardCubit extends Cubit<CreditCardState> {
     }
   }
 
-  /// [핵심 수정] 숫자 추출 및 검증 로직
   String? _extractCardNumber(String text) {
     String numbersOnly = text.replaceAll(RegExp(r'[^0-9]'), '');
 
-    if (numbersOnly.length < 13 || numbersOnly.length > 19) return null;
+    if (numbersOnly.length < 15 || numbersOnly.length > 17) return null;
     if (numbersOnly.startsWith(RegExp(r'[012]'))) {
-      // debugPrint(">>> 전화번호로 의심되어 무시함: $numbersOnly");
       return null;
     }
 

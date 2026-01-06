@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreditCardState implements DiagnosticableTreeMixin {
 
- CreditCardStatus get status; String? get cardNumber; String? get expiryDate;
+ CreditCardStatus get status; String get cardNumber; String get expiryDate; bool get isCameraInitialized;
 /// Create a copy of CreditCardState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $CreditCardStateCopyWith<CreditCardState> get copyWith => _$CreditCardStateCopyW
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CreditCardState'))
-    ..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('cardNumber', cardNumber))..add(DiagnosticsProperty('expiryDate', expiryDate));
+    ..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('cardNumber', cardNumber))..add(DiagnosticsProperty('expiryDate', expiryDate))..add(DiagnosticsProperty('isCameraInitialized', isCameraInitialized));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditCardState&&(identical(other.status, status) || other.status == status)&&(identical(other.cardNumber, cardNumber) || other.cardNumber == cardNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditCardState&&(identical(other.status, status) || other.status == status)&&(identical(other.cardNumber, cardNumber) || other.cardNumber == cardNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate)&&(identical(other.isCameraInitialized, isCameraInitialized) || other.isCameraInitialized == isCameraInitialized));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,cardNumber,expiryDate);
+int get hashCode => Object.hash(runtimeType,status,cardNumber,expiryDate,isCameraInitialized);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CreditCardState(status: $status, cardNumber: $cardNumber, expiryDate: $expiryDate)';
+  return 'CreditCardState(status: $status, cardNumber: $cardNumber, expiryDate: $expiryDate, isCameraInitialized: $isCameraInitialized)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $CreditCardStateCopyWith<$Res>  {
   factory $CreditCardStateCopyWith(CreditCardState value, $Res Function(CreditCardState) _then) = _$CreditCardStateCopyWithImpl;
 @useResult
 $Res call({
- CreditCardStatus status, String? cardNumber, String? expiryDate
+ CreditCardStatus status, String cardNumber, String expiryDate, bool isCameraInitialized
 });
 
 
@@ -68,12 +68,13 @@ class _$CreditCardStateCopyWithImpl<$Res>
 
 /// Create a copy of CreditCardState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? cardNumber = freezed,Object? expiryDate = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? cardNumber = null,Object? expiryDate = null,Object? isCameraInitialized = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as CreditCardStatus,cardNumber: freezed == cardNumber ? _self.cardNumber : cardNumber // ignore: cast_nullable_to_non_nullable
-as String?,expiryDate: freezed == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
-as String?,
+as CreditCardStatus,cardNumber: null == cardNumber ? _self.cardNumber : cardNumber // ignore: cast_nullable_to_non_nullable
+as String,expiryDate: null == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
+as String,isCameraInitialized: null == isCameraInitialized ? _self.isCameraInitialized : isCameraInitialized // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CreditCardStatus status,  String? cardNumber,  String? expiryDate)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CreditCardStatus status,  String cardNumber,  String expiryDate,  bool isCameraInitialized)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreditCardState() when $default != null:
-return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
+return $default(_that.status,_that.cardNumber,_that.expiryDate,_that.isCameraInitialized);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CreditCardStatus status,  String? cardNumber,  String? expiryDate)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CreditCardStatus status,  String cardNumber,  String expiryDate,  bool isCameraInitialized)  $default,) {final _that = this;
 switch (_that) {
 case _CreditCardState():
-return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
+return $default(_that.status,_that.cardNumber,_that.expiryDate,_that.isCameraInitialized);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CreditCardStatus status,  String? cardNumber,  String? expiryDate)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CreditCardStatus status,  String cardNumber,  String expiryDate,  bool isCameraInitialized)?  $default,) {final _that = this;
 switch (_that) {
 case _CreditCardState() when $default != null:
-return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
+return $default(_that.status,_that.cardNumber,_that.expiryDate,_that.isCameraInitialized);case _:
   return null;
 
 }
@@ -214,12 +215,13 @@ return $default(_that.status,_that.cardNumber,_that.expiryDate);case _:
 
 
 class _CreditCardState with DiagnosticableTreeMixin implements CreditCardState {
-  const _CreditCardState({this.status = CreditCardStatus.initial, this.cardNumber, this.expiryDate});
+  const _CreditCardState({this.status = CreditCardStatus.initial, this.cardNumber = '', this.expiryDate = 'N/A', this.isCameraInitialized = false});
   
 
 @override@JsonKey() final  CreditCardStatus status;
-@override final  String? cardNumber;
-@override final  String? expiryDate;
+@override@JsonKey() final  String cardNumber;
+@override@JsonKey() final  String expiryDate;
+@override@JsonKey() final  bool isCameraInitialized;
 
 /// Create a copy of CreditCardState
 /// with the given fields replaced by the non-null parameter values.
@@ -232,21 +234,21 @@ _$CreditCardStateCopyWith<_CreditCardState> get copyWith => __$CreditCardStateCo
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CreditCardState'))
-    ..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('cardNumber', cardNumber))..add(DiagnosticsProperty('expiryDate', expiryDate));
+    ..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('cardNumber', cardNumber))..add(DiagnosticsProperty('expiryDate', expiryDate))..add(DiagnosticsProperty('isCameraInitialized', isCameraInitialized));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditCardState&&(identical(other.status, status) || other.status == status)&&(identical(other.cardNumber, cardNumber) || other.cardNumber == cardNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditCardState&&(identical(other.status, status) || other.status == status)&&(identical(other.cardNumber, cardNumber) || other.cardNumber == cardNumber)&&(identical(other.expiryDate, expiryDate) || other.expiryDate == expiryDate)&&(identical(other.isCameraInitialized, isCameraInitialized) || other.isCameraInitialized == isCameraInitialized));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,cardNumber,expiryDate);
+int get hashCode => Object.hash(runtimeType,status,cardNumber,expiryDate,isCameraInitialized);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CreditCardState(status: $status, cardNumber: $cardNumber, expiryDate: $expiryDate)';
+  return 'CreditCardState(status: $status, cardNumber: $cardNumber, expiryDate: $expiryDate, isCameraInitialized: $isCameraInitialized)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$CreditCardStateCopyWith<$Res> implements $CreditCardState
   factory _$CreditCardStateCopyWith(_CreditCardState value, $Res Function(_CreditCardState) _then) = __$CreditCardStateCopyWithImpl;
 @override @useResult
 $Res call({
- CreditCardStatus status, String? cardNumber, String? expiryDate
+ CreditCardStatus status, String cardNumber, String expiryDate, bool isCameraInitialized
 });
 
 
@@ -274,12 +276,13 @@ class __$CreditCardStateCopyWithImpl<$Res>
 
 /// Create a copy of CreditCardState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? cardNumber = freezed,Object? expiryDate = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? cardNumber = null,Object? expiryDate = null,Object? isCameraInitialized = null,}) {
   return _then(_CreditCardState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as CreditCardStatus,cardNumber: freezed == cardNumber ? _self.cardNumber : cardNumber // ignore: cast_nullable_to_non_nullable
-as String?,expiryDate: freezed == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
-as String?,
+as CreditCardStatus,cardNumber: null == cardNumber ? _self.cardNumber : cardNumber // ignore: cast_nullable_to_non_nullable
+as String,expiryDate: null == expiryDate ? _self.expiryDate : expiryDate // ignore: cast_nullable_to_non_nullable
+as String,isCameraInitialized: null == isCameraInitialized ? _self.isCameraInitialized : isCameraInitialized // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
