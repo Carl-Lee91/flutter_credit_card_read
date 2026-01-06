@@ -1,0 +1,25 @@
+--- Testing Card Number ---
+Testing: 4 Lines
+  SUCCESS: Found 1234567890123456
+Testing: 2 Lines
+  SUCCESS: Found 1234567890123456
+Testing: 1 Line
+  SUCCESS: Found 1234567890123456
+Testing: With Noise (Strategy B)
+  Strategy A failed, trying B...
+  SUCCESS: Found 1234567890123456
+Testing: 4 Lines With Interspersed Text
+  Strategy A failed, trying B...
+  SUCCESS: Found 1234567890123456
+
+--- Testing Expiry Date ---
+Testing: Simple MM/YY
+  Found Expiry: 12/25
+Testing: Spaces MM / YY
+  Found Expiry: 12/25
+Testing: MM-YYYY
+  Found Expiry: 12/25
+Testing: With Text
+  Found Expiry: 12/25
+Testing: Split Lines
+  Found Expiry: 12/25
