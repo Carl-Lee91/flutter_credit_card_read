@@ -1,4 +1,7 @@
+import 'package:credit_card_read/presentation/state/local/credit_card/credit_card_cubit.dart';
+import 'package:credit_card_read/presentation/ui/credit_card_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CreditCardResultScreen extends StatelessWidget {
   final String cardNumber;
@@ -57,6 +60,20 @@ class CreditCardResultScreen extends StatelessWidget {
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => CreditCardCubit(),
+                        child: const TextScannerView(),
+                      ),
+                    ),
+                  );
+                },
+                child: Text('다시'),
               ),
             ],
           ),
